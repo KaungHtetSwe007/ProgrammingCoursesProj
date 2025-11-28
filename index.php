@@ -28,53 +28,99 @@ try {
 } catch (PDOException $e) {
     $lessons = [];
 }
+
+$featuredCourse = $courses[0] ?? null;
+$featuredLesson = $lessons[0] ?? null;
+$featuredBook = $books[0] ?? null;
 ?>
 
-<section class="hero">
-    <div class="hero-card reveal show">
-        <span class="pill">သင်ယူသူ · ဆရာ · အက်ဒ်မင် အားလုံးအတွက်</span>
-        <h1>တက်ကြွ Video Lessons, Downloadable Books & Realtime Logs</h1>
-        <p>စာအုပ်ဒေါင်းလုဒ်၊ ဗီဒီယိုသင်ခန်းစာများနှင့် Team Chat ကို တစ်နေရာတည်းမှာပင် ကြည့်၊ လေ့လာ၊ ချိတ်ဆက်နိုင်စေဖို့ အသစ်ထပ်တိုးထားပါပြီ။</p>
-        <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:1rem;">
-            <a href="register.php" class="btn">အခမဲ့ စတင်ပါ</a>
-            <a href="courses.php" class="btn-ghost">သင်တန်းများကြည့်</a>
+<section class="hero hero-grid">
+    <div class="hero-lede reveal show">
+        <span class="pill pill-glow">သင်ယူသူ · ဆရာ · အက်ဒ်မင်</span>
+        <h1>Unified Learning Canvas for Code, Content & Community</h1>
+        <p>ဤပေါင်းစပ်ရုံအတွက် သင်တန်းများ၊ သင်ခန်းစာများ၊ စာအုပ်ဒေါင်းလုဒ်များနှင့် Live Activity Logs များကို တစ်နေရာတည်းတွင် တိုးတက်အောင် လေ့လာနိုင်သည်။</p>
+        <div class="cta-row">
+            <a href="register.php" class="btn">အခမဲ့ စတင်ရန်</a>
+            <a href="courses.php" class="btn-ghost">သင်တန်းများ ကြည့်ရန်</a>
         </div>
-        <ul>
-            <li>Light / Dark Theme toggle</li>
-            <li>ဒေါင်းလုဒ်စာအုပ်များကို Cover Image ဖြင့်</li>
-            <li>အက်ဒ်မင်၊ ဆရာ၊ ကျောင်းသား အားလုံးအတွက် Activity Logs</li>
-            <li>ဗီဒီယိုသင်ခန်းစာ များစွာ ထပ်တိုးထား</li>
-        </ul>
+        <div class="hero-stats">
+            <div class="stat-bubble">
+                <small>သင်တန်းများ</small>
+                <strong><?= count($courses); ?>+</strong>
+                <span>နောက်ဆုံး တင်သွင်း</span>
+            </div>
+            <div class="stat-bubble">
+                <small>သင်ခန်းစာ</small>
+                <strong><?= count($lessons); ?>+</strong>
+                <span>ဗီဒီယိုနှင့် စာသား</span>
+            </div>
+            <div class="stat-bubble">
+                <small>စာအုပ်</small>
+                <strong><?= count($books); ?>+</strong>
+                <span>ဒေါင်းလုဒ်ဖိုင်များ</span>
+            </div>
+        </div>
     </div>
-    <div class="hero-visual reveal show">
-        <div class="floating-card">
-            <div class="video-meta"><span>🚀</span> လတ်တလော ကြည့်ရှုမှု</div>
-            <strong>Laravel Routing</strong>
-            <small>Router Model Binding · 24 mins</small>
-            <div class="progress-bar"><span style="width:72%"></span></div>
-            <small>Activity log: viewed by 12 learners today</small>
+    <div class="hero-stack reveal show">
+        <div class="panel-card panel-highlight">
+            <div class="panel-label">လတ်တလော သင်ခန်းစာ</div>
+            <?php if ($featuredLesson): ?>
+                <h3><?= h($featuredLesson['title']); ?></h3>
+                <p class="muted-text"><?= h($featuredLesson['course_title']); ?> · <?= h($featuredLesson['duration_minutes']); ?> မိနစ်</p>
+                <p><?= h(excerpt($featuredLesson['summary'] ?? '', 110)); ?></p>
+                <div class="panel-actions">
+                    <a class="btn btn-small" href="watch_lesson.php?id=<?= $featuredLesson['id']; ?>">ကြည့်ရှု</a>
+                    <a class="btn-ghost btn-small" href="course.php?id=<?= $featuredLesson['course_id']; ?>">သင်တန်းသို့</a>
+                </div>
+            <?php else: ?>
+                <h3>သင်ခန်းစာများ မရှိသေးပါ</h3>
+                <p class="muted-text">schema.sql အတိုင်း ထည့်သွင်းပြီး စတင်ပါ။</p>
+            <?php endif; ?>
         </div>
-        <div class="floating-card" style="margin-top:1rem; animation-delay:0.6s;">
-            <div class="video-meta"><span>📕</span> Top Download</div>
-            <strong>Python Automation Handbook</strong>
-            <small>5.1 MB · PDF · Favourite by 32 students</small>
-            <a class="btn-ghost" href="books.php">Download now</a>
+        <div class="panel-card panel-compact">
+            <div class="panel-row">
+                <div>
+                    <div class="panel-label">ထူးခြားသော သင်တန်း</div>
+                    <h4><?= $featuredCourse ? h($featuredCourse['title']) : 'သင်တန်း ထည့်ရန်'; ?></h4>
+                    <p class="muted-text"><?= $featuredCourse ? h($featuredCourse['language'] . ' · ' . $featuredCourse['level']) : 'admin panel မှ ထည့်သွင်းပါ'; ?></p>
+                </div>
+                <?php if ($featuredCourse): ?>
+                    <a class="chip-link" href="course.php?id=<?= $featuredCourse['id']; ?>">အသေးစိတ်</a>
+                <?php else: ?>
+                    <a class="chip-link" href="admin.php">ထည့်သွင်း</a>
+                <?php endif; ?>
+            </div>
+            <div class="panel-row">
+                <div>
+                    <div class="panel-label">Top Download</div>
+                    <h4><?= $featuredBook ? h($featuredBook['title']) : 'စာအုပ်မရှိသေး'; ?></h4>
+                    <p class="muted-text"><?= $featuredBook ? h($featuredBook['language'] . ' · ' . $featuredBook['file_size'] . ' MB') : 'books table ထည့်ပါ'; ?></p>
+                </div>
+                <a class="chip-link" href="books.php">ဖတ်ရှု</a>
+            </div>
         </div>
     </div>
 </section>
 
 <section class="section">
-    <div class="eyebrow">သင်တန်းများ</div>
-    <h2>အသစ်တင်သင်တန်းများ</h2>
-    <p class="muted-text">စွမ်းဆောင်ရည်မြင့် သင်တန်းအစီအစဉ်များကို Theme animation အသစ်နှင့် ပြသထားပါတယ်။</p>
+    <div class="section-header">
+        <div>
+            <div class="eyebrow">သင်တန်းများ</div>
+            <h2>အသစ်တင်သင်တန်းများ</h2>
+            <p class="muted-text">သင်ယူသင့်သော programming languages များကို storyline style ဖြင့် ပြသထားသည်။</p>
+        </div>
+        <a href="courses.php" class="btn-ghost btn-small">အားလုံးကြည့်</a>
+    </div>
     <div class="cards">
         <?php foreach ($courses as $course): ?>
-            <article class="card reveal">
-                <span class="tag"><?= h($course['language']); ?></span>
+            <article class="card course-card reveal">
+                <div class="card-top">
+                    <span class="tag"><?= h($course['language']); ?></span>
+                    <span class="pill thin-pill"><?= h($course['level']); ?></span>
+                </div>
                 <h3><?= h($course['title']); ?></h3>
-                <p>အဆင့် - <?= h($course['level']); ?></p>
-                <p><?= format_currency((int) $course['price']); ?></p>
-                <a class="btn" style="text-align:center;" href="course.php?id=<?= $course['id']; ?>">အသေးစိတ်</a>
+                <p class="muted-text"><?= format_currency((int) $course['price']); ?></p>
+                <a class="chip-link" href="course.php?id=<?= $course['id']; ?>">သင်တန်း အသေးစိတ်</a>
             </article>
         <?php endforeach; ?>
         <?php if (!$courses): ?>
@@ -84,8 +130,13 @@ try {
 </section>
 
 <section class="section">
-    <div class="eyebrow">ဗီဒီယိုသင်ခန်းစာများ</div>
-    <h2>အခမဲ့ ကြည့်ရှုနိုင် သို့မဟုတ် အသစ်တင်ထားသည်များ</h2>
+    <div class="section-header">
+        <div>
+            <div class="eyebrow">ဗီဒီယိုသင်ခန်းစာများ</div>
+            <h2>အခမဲ့ ကြည့်ရှုနိုင် သို့မဟုတ် အသစ်တင်ထားသည်များ</h2>
+        </div>
+        <a href="dashboard.php" class="btn-ghost btn-small">Dashboard သို့</a>
+    </div>
     <div class="cards">
         <?php foreach ($lessons as $lesson): ?>
             <article class="card video-card reveal">
@@ -96,9 +147,9 @@ try {
                 <h3><?= h($lesson['title']); ?></h3>
                 <p class="muted-text"><?= h($lesson['course_title']); ?></p>
                 <p><?= h(excerpt($lesson['summary'] ?? '', 120)); ?></p>
-                <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
-                    <a class="btn" href="watch_lesson.php?id=<?= $lesson['id']; ?>">ကြည့်ရှု</a>
-                    <a class="btn-ghost" href="course.php?id=<?= $lesson['course_id']; ?>">သင်တန်းသို့</a>
+                <div class="inline-actions">
+                    <a class="btn btn-small" href="watch_lesson.php?id=<?= $lesson['id']; ?>">ကြည့်ရှု</a>
+                    <a class="btn-ghost btn-small" href="course.php?id=<?= $lesson['course_id']; ?>">သင်တန်းသို့</a>
                 </div>
             </article>
         <?php endforeach; ?>
@@ -110,16 +161,21 @@ try {
 
 <section class="section">
     <div class="two-column">
-        <div class="box reveal">
-            <div class="eyebrow">စာအုပ် Download</div>
-            <h2>သစ်လွင်သော စာအုပ်များ</h2>
+        <div class="box reveal box-gradient">
+            <div class="section-header">
+                <div>
+                    <div class="eyebrow">စာအုပ် Download</div>
+                    <h2>သစ်လွင်သော စာအုပ်များ</h2>
+                </div>
+                <a class="chip-link" href="books.php">စာအုပ် အားလုံး</a>
+            </div>
             <?php foreach ($books as $book): ?>
-                <div class="book-card" style="margin-bottom:1rem;">
+                <div class="book-card">
                     <div class="book-cover"></div>
                     <div>
                         <strong><?= h($book['title']); ?></strong>
-                        <p>ဘာသာ - <?= h($book['language']); ?> · <?= h($book['file_size']); ?> MB</p>
-                        <a href="books.php" class="btn-ghost">ဖတ်ရှု / ဒေါင်းလုဒ်</a>
+                        <p class="muted-text">ဘာသာ - <?= h($book['language']); ?> · <?= h($book['file_size']); ?> MB</p>
+                        <a href="books.php" class="chip-link">ဖတ်ရှု / ဒေါင်းလုဒ်</a>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -127,11 +183,11 @@ try {
                 <p>စာအုပ်များမရှိသေးပါ။ database/schema.sql အတိုင်း ထည့်သွင်းပါ။</p>
             <?php endif; ?>
         </div>
-        <div class="box reveal">
+        <div class="box reveal box-lined">
             <div class="eyebrow">Community & Logs</div>
             <h2>Chat + Activity Log + Profile Upload</h2>
-            <p>သင်တန်းဝင်များနှင့် ဆရာများအကြား တက်ကြွဆွေးနွေးမှု၊ အက်ဒ်မင် log များ၊ Profile Photo Upload အားလုံးကို Dashboard ထဲမှ ထိန်းချုပ်နိုင်ပါပြီ။</p>
-            <a href="dashboard.php" class="btn">ထိပ်တန်းသင်တန်းဝင် Dashboard</a>
+            <p>သင်တန်းဝင်များ၊ ဆရာများနှင့် အက်ဒ်မင်တို့ အတွက် လှုပ်ရှားမှုများကို stream-like view ဖြင့် ကြည့်ရှုနိုင်ပြီး Dashboard သို့ တိုက်ရိုက်ဝင်ရောက် ထိန်းချုပ်နိုင်ပါသည်။</p>
+            <a href="dashboard.php" class="btn">Dashboard ဝင်ရောက်မည်</a>
         </div>
     </div>
 </section>
