@@ -59,7 +59,11 @@ CREATE TABLE IF NOT EXISTS books (
     description TEXT,
     file_path VARCHAR(255) NOT NULL,
     file_size VARCHAR(20) NOT NULL,
+    cover_path VARCHAR(255) DEFAULT NULL,
+    instructor_id INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ,
+    FOREIGN KEY (instructor_id) REFERENCES instructors(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS favorite_books (
@@ -83,6 +87,19 @@ CREATE TABLE IF NOT EXISTS enrollments (
     FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS enrollment_payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    enrollment_id INT NOT NULL,
+    account_channel ENUM('kpay', 'wavepay') NOT NULL,
+    account_name VARCHAR(120) NOT NULL,
+    account_number VARCHAR(32) NOT NULL,
+    transaction_last6 VARCHAR(16) NOT NULL,
+    slip_path VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_payment_per_enrollment (enrollment_id),
+    FOREIGN KEY (enrollment_id) REFERENCES enrollments(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS chat_messages (

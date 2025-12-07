@@ -52,14 +52,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pendingStmt = $pdo->query('
-    SELECT e.*, u.name, c.title
+    SELECT e.*,
+           u.name,
+           u.email,
+           u.avatar_path,
+           c.title,
+           ep.account_channel,
+           ep.account_name,
+           ep.account_number,
+           ep.transaction_last6,
+           ep.slip_path
     FROM enrollments e
     JOIN users u ON e.user_id = u.id
     JOIN courses c ON e.course_id = c.id
+    LEFT JOIN enrollment_payments ep ON ep.enrollment_id = e.id
     WHERE e.status = "pending"
     ORDER BY e.created_at ASC
 ');
 $pendingEnrollments = $pendingStmt->fetchAll();
+
+$paymentSubmissions = [];
+try {
+    $paymentStmt = $pdo->query('
+        SELECT ep.*, e.status AS enrollment_status, u.name, u.email, u.avatar_path, c.title
+        FROM enrollment_payments ep
+        JOIN enrollments e ON ep.enrollment_id = e.id
+        JOIN users u ON e.user_id = u.id
+        JOIN courses c ON e.course_id = c.id
+        WHERE e.status = "pending"
+        ORDER BY ep.created_at DESC
+    ');
+    $paymentSubmissions = $paymentStmt->fetchAll();
+} catch (PDOException $e) {
+    $paymentSubmissions = [];
+}
 
 $instructorsStmt = $pdo->query('SELECT * FROM instructors ORDER BY display_name');
 $instructors = $instructorsStmt->fetchAll();
@@ -93,13 +119,68 @@ $activityLogs = $logsStmt->fetchAll();
 ?>
 
 <section class="section">
+    <div class="section-header">
+        <div>
+            <div class="eyebrow">ငွေပေးချေမှု</div>
+            <h2>Pay Slip + Transaction နံပါတ်</h2>
+            <p class="muted-text">ကျောင်းသားများ တင်သွင်းထားသော screenshot နှင့် နောက်ဆုံး၆လုံးကို Admin အဖြစ်အတည်ပြုရန် ကြည့်ပါ။</p>
+        </div>
+    </div>
+    <div class="payment-admin-grid">
+        <?php foreach ($paymentSubmissions as $pay): ?>
+            <article class="card payment-admin-card">
+                <div class="payment-admin-header">
+                    <img src="<?= avatar_url($pay); ?>" alt="avatar">
+                    <div>
+                        <strong><?= h($pay['name']); ?></strong>
+                        <p class="muted-text"><?= h($pay['email']); ?></p>
+                        <p class="muted-text"><?= h($pay['title']); ?></p>
+                        <span class="status-pill status-<?= h($pay['enrollment_status']); ?>"><?= h(enrollment_label($pay['enrollment_status'])); ?></span>
+                    </div>
+                </div>
+                <p><strong><?= h(strtoupper($pay['account_channel'])); ?></strong> · <?= h($pay['account_name']); ?> · <?= h($pay['account_number']); ?></p>
+                <p class="muted-text">နောက်ဆုံး Transaction ၆ လုံး - <?= h($pay['transaction_last6']); ?></p>
+                <div class="slip-preview">
+                    <img src="<?= h($pay['slip_path']); ?>" alt="Payment slip">
+                </div>
+                <a class="chip-link" href="<?= h($pay['slip_path']); ?>" target="_blank" rel="noreferrer">ဖိုင်ကြည့်မည်</a>
+            </article>
+        <?php endforeach; ?>
+    </div>
+    <?php if (!$paymentSubmissions): ?>
+        <p>တင်ထားသော Pay Slip မရှိသေးပါ။</p>
+    <?php endif; ?>
+</section>
+
+<section class="section">
     <h1>အက်ဒ်မင် ထိန်းချုပ်မှု</h1>
     <div class="two-column">
         <div class="box">
             <h3>Pending သင်တန်းတက်ရောက်မှု</h3>
             <?php foreach ($pendingEnrollments as $enroll): ?>
                 <div class="card" style="margin-bottom:1rem;">
-                    <strong><?= h($enroll['name']); ?> - <?= h($enroll['title']); ?></strong>
+                    <div style="display:flex; gap:0.9rem; align-items:center; flex-wrap:wrap;">
+                        <img src="<?= avatar_url($enroll); ?>" alt="avatar" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:1px solid var(--divider);">
+                        <div>
+                            <strong><?= h($enroll['name']); ?></strong>
+                            <p class="muted-text"><?= h($enroll['email'] ?? ''); ?></p>
+                            <p class="muted-text"><?= h($enroll['title']); ?></p>
+                        </div>
+                    </div>
+                    <?php if (!empty($enroll['account_name'])): ?>
+                        <div class="payment-summary" style="margin-top:0.6rem;">
+                            <div>
+                                <small class="muted-text">ရွေးချယ်ထားသော အကောင့်</small>
+                                <p><strong><?= h($enroll['account_name']); ?></strong> · <?= h($enroll['account_number']); ?></p>
+                                <p class="muted-text"><?= h(strtoupper($enroll['account_channel'])); ?> · နောက်ဆုံး၆လုံး <?= h($enroll['transaction_last6']); ?></p>
+                            </div>
+                            <?php if (!empty($enroll['slip_path'])): ?>
+                                <div class="slip-preview">
+                                    <img src="<?= h($enroll['slip_path']); ?>" alt="Payment slip">
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
                     <form method="post" style="margin-top:0.5rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
                         <input type="hidden" name="csrf" value="<?= csrf_token(); ?>">
                         <input type="hidden" name="form_type" value="enrollment_decision">

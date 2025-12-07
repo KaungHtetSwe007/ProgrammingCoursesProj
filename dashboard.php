@@ -12,6 +12,7 @@ $favoriteBooks = [];
 $instructorRecord = null;
 $instructorCourses = [];
 $lessonsByCourse = [];
+$instructorBooks = [];
 
 if (!$isAdmin && !$isInstructor) {
     $enrollStmt = $pdo->prepare('
@@ -68,6 +69,10 @@ if ($isInstructor) {
                 $lessonsByCourse[$lesson['course_id']][] = $lesson;
             }
         }
+
+        $bookStmt = $pdo->prepare('SELECT * FROM books WHERE instructor_id = ? ORDER BY created_at DESC');
+        $bookStmt->execute([$instructorRecord['id']]);
+        $instructorBooks = $bookStmt->fetchAll();
     }
 }
 
@@ -296,6 +301,36 @@ if ($isAdmin) {
 </section>
 
 <section class="section">
+    <div class="eyebrow">Mentor Library</div>
+    <h2>စာအုပ် Upload (Cover + Language)</h2>
+    <form method="post" action="actions/upload_book.php" enctype="multipart/form-data">
+        <input type="hidden" name="csrf" value="<?= csrf_token(); ?>">
+        <div class="form-group">
+            <label>စာအုပ်ခေါင်းစဉ်</label>
+            <input type="text" name="title" required>
+        </div>
+        <div class="form-group">
+            <label>Programming Language (ဥပမာ - PHP, Python)</label>
+            <input type="text" name="language" required>
+        </div>
+        <div class="form-group">
+            <label>အကျဉ်းချုပ်</label>
+            <textarea name="description" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Book File (PDF/EPUB)</label>
+            <input type="file" name="book_file" accept=".pdf,.epub,application/pdf,application/epub+zip" required>
+        </div>
+        <div class="form-group">
+            <label>Cover (JPG/PNG/WebP)</label>
+            <input type="file" name="cover" accept="image/*">
+        </div>
+        <button class="btn" type="submit">စာအုပ် Upload</button>
+        <p class="muted-text" style="margin-top:0.3rem;">Mentor အဖြစ်တင်ထားသော စာအုပ်များကို User များက Language/Author အလိုက် ကြည့်ရှုဒေါင်းလုဒ်နိုင်ပါသည်။</p>
+    </form>
+</section>
+
+<section class="section">
     <div class="eyebrow">ကျွန်ုပ်၏ သင်ခန်းစာများ</div>
     <h2>Course အလိုက် စုစည်းထားသော Lesson များ</h2>
     <div class="cards">
@@ -316,6 +351,28 @@ if ($isAdmin) {
         <?php endforeach; ?>
         <?php if (!$instructorCourses): ?>
             <p>သင်တန်းမရှိသေးပါ။ Admin မှ သင်တန်းသတ်မှတ်ပေးပါ။</p>
+        <?php endif; ?>
+    </div>
+</section>
+
+<section class="section">
+    <div class="eyebrow">ကျွန်ုပ်၏ စာအုပ်များ</div>
+    <h2>Mentor ရေးသား/ရွေးချယ်ထားသော စာအုပ်များ</h2>
+    <div class="cards">
+        <?php foreach ($instructorBooks as $book): ?>
+            <article class="card book-card reveal">
+                <div class="book-cover" style="<?= $book['cover_path'] ? 'background-image:url(' . h($book['cover_path']) . ');' : ''; ?>"></div>
+                <div>
+                    <span class="tag"><?= h($book['language']); ?></span>
+                    <h3><?= h($book['title']); ?></h3>
+                    <p class="muted-text"><?= h($book['file_size']); ?> MB</p>
+                    <p><?= nl2br(h($book['description'])); ?></p>
+                    <a class="chip-link" href="actions/download_book.php?id=<?= $book['id']; ?>&csrf=<?= csrf_token(); ?>">ဒေါင်းလုဒ်</a>
+                </div>
+            </article>
+        <?php endforeach; ?>
+        <?php if (!$instructorBooks): ?>
+            <p>Mentor အဖြစ်တင်ထားသော စာအုပ်မရှိသေးပါ။</p>
         <?php endif; ?>
     </div>
 </section>

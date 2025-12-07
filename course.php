@@ -23,11 +23,23 @@ $lessons = $lessonStmt->fetchAll();
 
 $currentUser = current_user($pdo);
 $enrollment = null;
+$payment = null;
+$paymentAccounts = payment_accounts();
 
 if ($currentUser) {
     $enrollStmt = $pdo->prepare('SELECT * FROM enrollments WHERE course_id = ? AND user_id = ? LIMIT 1');
     $enrollStmt->execute([$courseId, $currentUser['id']]);
     $enrollment = $enrollStmt->fetch();
+
+    if ($enrollment) {
+        try {
+            $payStmt = $pdo->prepare('SELECT * FROM enrollment_payments WHERE enrollment_id = ? LIMIT 1');
+            $payStmt->execute([$enrollment['id']]);
+            $payment = $payStmt->fetch() ?: null;
+        } catch (PDOException $e) {
+            $payment = null;
+        }
+    }
 }
 
 $hasFullAccess = ensure_course_access($pdo, $courseId);
@@ -45,22 +57,66 @@ require __DIR__ . '/partials/header.php';
             <p>စျေးနှုန်း - <?= format_currency((int) $course['price']); ?></p>
 
                 <?php if ($currentUser): ?>
-                    <?php if ($enrollment): ?>
+                    <?php if ($enrollment && $enrollment['status'] === 'approved'): ?>
                         <p>သင်တန်းအခြေအနေ -
-                        <span class="status-pill status-<?= h($enrollment['status']); ?>">
-                            <?= h(enrollment_label($enrollment['status'])); ?>
-                        </span>
-                    </p>
-                    <?php else: ?>
-                        <?php if (is_student($pdo)): ?>
-                            <form method="post" action="actions/enroll_course.php" style="display:flex; gap:0.8rem; flex-wrap:wrap;">
-                                <input type="hidden" name="csrf" value="<?= csrf_token(); ?>">
-                                <input type="hidden" name="course_id" value="<?= $course['id']; ?>">
-                                <button class="btn" type="submit">ဒီသင်တန်းကို စာရင်းသွင်းမည်</button>
-                            </form>
-                        <?php else: ?>
-                            <p class="muted-text">သင်တန်းစာရင်းသွင်းခြင်းသည် ကျောင်းသားများအတွက်သာ ဖြစ်ပါသည်။</p>
+                            <span class="status-pill status-<?= h($enrollment['status']); ?>">
+                                <?= h(enrollment_label($enrollment['status'])); ?>
+                            </span>
+                        </p>
+                        <?php if ($payment): ?>
+                            <div class="payment-summary">
+                                <div>
+                                    <small class="muted-text">ငွေပေးချေမှု</small>
+                                    <p><strong><?= h($payment['account_name']); ?></strong> · <?= h($payment['account_number']); ?></p>
+                                    <p class="muted-text">နောက်ဆုံး၆လုံး - <?= h($payment['transaction_last6']); ?></p>
+                                </div>
+                                <div class="slip-preview">
+                                    <img src="<?= h($payment['slip_path']); ?>" alt="Payment slip">
+                                </div>
+                            </div>
                         <?php endif; ?>
+                    <?php elseif (is_student($pdo)): ?>
+                        <?php if ($enrollment): ?>
+                            <p>သင်တန်းအခြေအနေ -
+                                <span class="status-pill status-<?= h($enrollment['status']); ?>">
+                                    <?= h(enrollment_label($enrollment['status'])); ?>
+                                </span>
+                                <small class="muted-text"> (ပေးချေမှု ပြောင်းလဲလိုပါက ချက်ချင်း ဖြည့်ပါ)</small>
+                            </p>
+                        <?php endif; ?>
+                        <div class="payment-panel">
+                            <div>
+                                <div class="eyebrow">ငွေပေးချေရာ</div>
+                                <h3>မုဒ်ရွေး၍ Pay Slip တင်ပါ</h3>
+                                <p class="muted-text">Enter top up amount နေရာတွင် Transaction နံပါတ် နောက်ဆုံး၆လုံးသာ ရိုက်ထည့်ပါ။</p>
+                                <form method="post" action="actions/submit_payment.php" enctype="multipart/form-data" class="payment-form">
+                                    <input type="hidden" name="csrf" value="<?= csrf_token(); ?>">
+                                    <input type="hidden" name="course_id" value="<?= $course['id']; ?>">
+                                    <?php $defaultAccountKey = array_key_first($paymentAccounts); ?>
+                                    <label class="form-group">
+                                        <span>Enter your top-up amount (နောက်ဆုံး ၆ လုံး)</span>
+                                        <input type="text" name="transaction_last6" pattern="\d{6}" inputmode="numeric" maxlength="6" placeholder="ဥပမာ - 123456" required>
+                                    </label>
+                                    <label class="form-group">
+                                        <span>Upload your transfer receipt</span>
+                                        <input type="file" name="slip" accept="image/*" required>
+                                    </label>
+                                    <div class="payment-grid">
+                                        <?php foreach ($paymentAccounts as $key => $account): ?>
+                                            <label class="payment-card">
+                                                <input type="radio" name="account_key" value="<?= h($key); ?>" <?= $key === $defaultAccountKey ? 'checked' : ''; ?>>
+                                                <span class="channel"><?= h(strtoupper($account['label'])); ?></span>
+                                                <strong><?= h($account['name']); ?></strong>
+                                                <span class="muted-text"><?= h($account['number']); ?></span>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    <button class="btn" type="submit">ပေးချေပြီး အတည်ပြုစောင့်မည်</button>
+                                </form>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <p class="muted-text">သင်တန်းစာရင်းသွင်းခြင်းသည် ကျောင်းသားများအတွက်သာ ဖြစ်ပါသည်။</p>
                     <?php endif; ?>
                 <?php else: ?>
                     <p>လောလောဆယ် ဗီဒီယို ၂ ခုသာ ကြည့်ရှုနိုင်ပါသေးသည်။ <a href="register.php">စာရင်းသွင်းပါ</a></p>

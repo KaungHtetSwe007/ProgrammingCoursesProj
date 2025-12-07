@@ -165,23 +165,29 @@ $featuredBook = $books[0] ?? null;
             <div class="section-header">
                 <div>
                     <div class="eyebrow">စာအုပ် Download</div>
-                    <h2>သစ်လွင်သော စာအုပ်များ</h2>
+                    <h2>အသစ်တင်ထားသော စာအုပ်များ</h2>
                 </div>
                 <a class="chip-link" href="books.php">စာအုပ် အားလုံး</a>
             </div>
-            <?php foreach ($books as $book): ?>
-                <div class="book-card">
-                    <div class="book-cover"></div>
-                    <div>
-                        <strong><?= h($book['title']); ?></strong>
-                        <p class="muted-text">ဘာသာ - <?= h($book['language']); ?> · <?= h($book['file_size']); ?> MB</p>
-                        <a href="books.php" class="chip-link">ဖတ်ရှု / ဒေါင်းလုဒ်</a>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-            <?php if (!$books): ?>
-                <p>စာအုပ်များမရှိသေးပါ။ database/schema.sql အတိုင်း ထည့်သွင်းပါ။</p>
-            <?php endif; ?>
+            <div class="cards">
+                <?php foreach (array_slice($books, 0, 3) as $book): ?>
+                    <article class="card book-card reveal">
+                        <div class="book-cover">
+                            <?php if (!empty($book['cover_path'])): ?>
+                                <img src="<?= h(str_replace('\\\\', '/', $book['cover_path'])); ?>" alt="<?= h($book['title']); ?> cover">
+                            <?php endif; ?>
+                        </div>
+                        <div>
+                            <strong><?= h($book['title']); ?></strong>
+                            <p class="muted-text"><?= h($book['language']); ?> · <?= h($book['file_size']); ?> MB</p>
+                            <a href="books.php" class="chip-link">ဖတ်ရှု / ဒေါင်းလုဒ်</a>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
+                <?php if (!$books): ?>
+                    <p>စာအုပ်များမရှိသေးပါ။ database/schema.sql အတိုင်း ထည့်သွင်းပါ။</p>
+                <?php endif; ?>
+            </div>
         </div>
         <div class="box reveal box-lined">
             <div class="eyebrow">Community & Logs</div>

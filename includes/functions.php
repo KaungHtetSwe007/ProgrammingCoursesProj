@@ -177,6 +177,36 @@ function enrollment_label(string $status): string
     return $map[$status] ?? $status;
 }
 
+function payment_accounts(): array
+{
+    return [
+        'kpay_primary' => [
+            'channel' => 'kpay',
+            'label' => 'KPay',
+            'name' => 'Kyaw Win Shein',
+            'number' => '09454500019',
+        ],
+        'kpay_alt' => [
+            'channel' => 'kpay',
+            'label' => 'KPay',
+            'name' => 'Aye Soe Mar',
+            'number' => '09778007800',
+        ],
+        'wave_primary' => [
+            'channel' => 'wavepay',
+            'label' => 'Wave Pay',
+            'name' => 'Aung Ko Htet',
+            'number' => '09770007789',
+        ],
+        'wave_alt' => [
+            'channel' => 'wavepay',
+            'label' => 'Wave Pay',
+            'name' => 'Thi Ha Tun',
+            'number' => '09770088990',
+        ],
+    ];
+}
+
 function log_activity(PDO $pdo, ?int $userId, string $action, string $context = '', ?string $role = null): void
 {
     try {

@@ -14,7 +14,7 @@ $courses = $stmt->fetchAll();
 <section class="section">
     <div class="eyebrow">သင်တန်းစာရင်း</div>
     <h1>Programming Language တစ်ခုချင်းစီအတွက် Full Stack လေ့လာမှု</h1>
-    <p class="muted-text">သင်ခန်းစာ၊ စာအုပ်၊ စမ်းသပ်မှုများကို ပါဝင်စွာထည့်သွင်းထားပါသည်။ Animation အသစ်နဲ့ စတင်ကြည့်ပါ။</p>
+    <p class="muted-text">သင်ခန်းစာ၊ စာအုပ်များကို ထည့်သွင်းထားပါသည်။ Animation အသစ်နဲ့ စတင်ကြည့်ပါ။</p>
 
     <div class="cards">
         <?php foreach ($courses as $course): ?>
