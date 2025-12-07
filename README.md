@@ -39,14 +39,4 @@ PHP + MySQL ဖြင့် တည်ဆောက်ထားသော Programmi
 - `database/schema.sql` – DB Schema + Seed Data
 - `storage/books`, `storage/videos` – Demo ဖိုင်များ
 
-## အရေးကြီးသတိပေးချက်များ
 
-- Production သို့ တင်မီ `storage/` ဖိုင်များကို တကယ့် PDF/Video များဖြင့် အစားထိုးပါ။
-- CSRF token များကို Action Link + Form များတွင် ထည့်သွင်းထားပြီး Session ထဲတွင် စီမံထားပါသည်။
-- Chat Feature သို့ ဝင်ရန် သင်တန်းကို Admin က အတည်ပြုထားရပါမည်။
-
-## အဆင့်မြှင့်ရန် အကြံပြုချက်များ
-
-1. Lesson Streaming အတွက် Real Video CDN သို့မဟုတ် Signed URL ထည့်သွင်းခြင်း
-2. Payment Gateway တပ်ဆင်၍ သင်တန်းကျသင့်ငွေကို အလိုအလျောက် အတည်ပြုနိုင်စေခြင်း
-3. Notification (Email/Web Push) တွင် လျှောက်ထားပြီးမြန်မည့် အခြေအနေများကို အသိပေးခြင်း
