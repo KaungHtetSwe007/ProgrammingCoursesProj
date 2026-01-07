@@ -36,4 +36,4 @@ if ($existing) {
     $insert->execute([$messageId, $user['id']]);
 }
 
-redirect('chat.php?course_id=' . $message['course_id']);
+redirect('chat.php?course_id=' . $message['course_id'] . '#message-' . $messageId);

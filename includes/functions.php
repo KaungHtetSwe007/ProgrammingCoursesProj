@@ -229,3 +229,16 @@ function recent_logs(PDO $pdo, int $userId, int $limit = 8): array
         return [];
     }
 }
+
+function render_stars(?float $rating): string
+{
+    $rating = $rating !== null ? max(0, min(5, $rating)) : null;
+    $html = '<span class="star-readonly" aria-hidden="true">';
+    for ($i = 1; $i <= 5; $i++) {
+        $class = ($rating !== null && $rating >= $i - 0.5) ? ' filled' : '';
+        $html .= '<span class="star' . $class . '">★</span>';
+    }
+    $html .= '</span>';
+
+    return $html;
+}

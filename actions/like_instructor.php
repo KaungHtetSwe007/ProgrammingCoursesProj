@@ -28,11 +28,13 @@ $stmt->execute([$instructorId, $user['id']]);
 $row = $stmt->fetch();
 
 if ($row) {
-    set_flash('error', 'ဤဆရာအား Like ပေးပြီးသား ဖြစ်နေပါသည်။');
+    $pdo->prepare('DELETE FROM instructor_likes WHERE id = ?')->execute([$row['id']]);
+    set_flash('success', 'Follow ဖြုတ်ပြီးပါပြီ။');
+    log_activity($pdo, (int) $user['id'], 'Unfollow Instructor', 'Instructor ID: ' . $instructorId, $user['role'] ?? null);
 } else {
     $pdo->prepare('INSERT INTO instructor_likes (instructor_id, user_id) VALUES (?, ?)')->execute([$instructorId, $user['id']]);
-    set_flash('success', 'Like ပေးခြင်း အောင်မြင်ပါသည်။');
-    log_activity($pdo, (int) $user['id'], 'Like Instructor', 'Instructor ID: ' . $instructorId, $user['role'] ?? null);
+    set_flash('success', 'Follow ပြုလုပ်ပြီးပါပြီ။');
+    log_activity($pdo, (int) $user['id'], 'Follow Instructor', 'Instructor ID: ' . $instructorId, $user['role'] ?? null);
 }
 
 redirect('instructors.php');
